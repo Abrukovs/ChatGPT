@@ -1,0 +1,26 @@
+[
+  {
+    "id": "example-hockey-1",
+    "sport": "hockey",
+    "competition": "Example League",
+    "event": "Team A - Team B",
+    "market": "Team A +1.5 goals (including overtime)",
+    "odds": 1.62,
+    "estimated_probability_pct": 68,
+    "critical_risks": [],
+    "evidence_gaps": ["starting goaltender not confirmed"],
+    "notes": "Illustrative data only. Not a real match or recommendation."
+  },
+  {
+    "id": "example-tennis-1",
+    "sport": "tennis",
+    "competition": "Example Tournament",
+    "event": "Player A - Player B",
+    "market": "Over 20.5 games",
+    "odds": 1.78,
+    "estimated_probability_pct": 64,
+    "critical_risks": ["fitness concern not resolved"],
+    "evidence_gaps": ["recent medical status unclear"],
+    "notes": "Illustrative data only. Not a real match or recommendation."
+  }
+]
