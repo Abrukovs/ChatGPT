@@ -1,0 +1,67 @@
+name: Record daily decision
+
+on:
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "Record type"
+        required: true
+        type: choice
+        options:
+          - decision
+          - settlement
+      record_json:
+        description: "One complete JSON object for the chosen record type"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-journal-writes
+  cancel-in-progress: false
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate and write journal record
+        env:
+          RECORD_JSON: ${{ inputs.record_json }}
+          RECORD_KIND: ${{ inputs.kind }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from journal_import import import_record
+
+          record = json.loads(os.environ["RECORD_JSON"])
+          if not isinstance(record, dict):
+              raise ValueError("Expected a single JSON object")
+          input_path = Path("/tmp/daily_journal_record.json")
+          input_path.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
+          result = import_record(os.environ["RECORD_KIND"], input_path)
+          print("Journal result:", result)
+          PY
+      - name: Commit journal update if changed
+        run: |
+          if git diff --quiet -- daily_decisions.csv settlements.csv; then
+            echo "No changes to existing files."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add daily_decisions.csv settlements.csv
+            git commit -m "Record daily journal entry"
+            git push origin HEAD:main
+          fi
