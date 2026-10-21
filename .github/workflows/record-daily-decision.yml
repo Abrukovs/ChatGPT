@@ -10,6 +10,11 @@ on:
         options:
           - decision
           - settlement
+      dry_run:
+        description: "Validate only; never commit or push"
+        required: true
+        type: boolean
+        default: true
       record_json:
         description: "One complete JSON object for the chosen record type"
         required: true
@@ -39,6 +44,7 @@ jobs:
         env:
           RECORD_JSON: ${{ inputs.record_json }}
           RECORD_KIND: ${{ inputs.kind }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           python - <<'PY'
           import json
@@ -51,10 +57,21 @@ jobs:
               raise ValueError("Expected a single JSON object")
           input_path = Path("/tmp/daily_journal_record.json")
           input_path.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
-          result = import_record(os.environ["RECORD_KIND"], input_path)
+          if os.environ["DRY_RUN"].lower() == "true":
+              import tempfile
+              with tempfile.TemporaryDirectory() as temp:
+                  from shutil import copyfile
+                  for name in ("daily_decisions.csv", "settlements.csv"):
+                      if Path(name).exists():
+                          copyfile(name, Path(temp) / name)
+                  result = import_record(os.environ["RECORD_KIND"], input_path, Path(temp))
+              print("DRY RUN: no journal files changed")
+          else:
+              result = import_record(os.environ["RECORD_KIND"], input_path)
           print("Journal result:", result)
           PY
       - name: Commit journal update if changed
+        if: ${{ !inputs.dry_run }}
         run: |
           if git diff --quiet -- daily_decisions.csv settlements.csv; then
             echo "No changes to existing files."
