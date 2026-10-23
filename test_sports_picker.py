@@ -34,6 +34,32 @@ class SportsPickerTests(unittest.TestCase):
         result = rank_candidates([candidate(odds=1.30)])
         self.assertIsNone(result["suggested_lead"])
 
+    def test_scenario_missing_requires_review(self):
+        self.assertTrue(evaluate_candidate(candidate())["requires_manual_review"])
+
+    def test_sensitivity_range_flags_fragility(self):
+        result = evaluate_candidate(candidate(
+            failure_scenarios=["favorite wins by two goals"],
+            alternative_markets=["moneyline compared"],
+            scenario_probability_pct={"low": 53, "high": 74},
+        ))
+        self.assertTrue(result["requires_manual_review"])
+        self.assertTrue(any("10 percentage points" in x for x in result["scenario_review_flags"]))
+
+    def test_documented_stable_scenario(self):
+        result = evaluate_candidate(candidate(
+            failure_scenarios=["early deficit"],
+            alternative_markets=["match total"],
+            scenario_probability_pct={"low": 62, "high": 72},
+        ))
+        self.assertFalse(result["requires_manual_review"])
+
+    def test_inconsistent_scenario_bounds_invalid(self):
+        result = evaluate_candidate(candidate(
+            scenario_probability_pct={"low": 75, "high": 80},
+        ))
+        self.assertFalse(result["valid"])
+
     def test_invalid_probability_is_reported(self):
         self.assertFalse(evaluate_candidate(candidate(estimated_probability_pct=120))["valid"])
 
