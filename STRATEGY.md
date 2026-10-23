@@ -78,3 +78,14 @@ If no selection qualifies, report PASS and briefly explain the strongest candida
 
 ## 8. Integrity
 No fabricated statistics, prices, injuries, lineups, sources or results. Distinguish confirmed facts from estimates. Never promise a result or describe a pick as guaranteed. Do not provide stake amounts.
+
+## 9. Pre-match scenario stress test (added 2026-10-23)
+These checks are **prospective safeguards**, not claims that past losses could certainly have been predicted. Apply them before kickoff and document sources and uncertainties.
+
+1. **Failure scenario:** For every finalist, identify at least one plausible, specific way the exact market loses (e.g. a favorite wins by 2+, an early deficit opens the game, a goalie change). State what evidence supports that scenario; do not infer its likelihood from a final score.
+2. **Alternative markets:** Compare at least one materially different market for the same event when prices and settlement rules are available. Explain why the proposed market is more robust. If no comparable market quote is available, mark this as an evidence gap, not a fictitious comparison.
+3. **Sensitivity:** Give a realistic lower and upper estimate for the market's success probability, based on named uncertainties such as goalie, lineup, pace, surface, or early-score dynamics. Treat this as an analyst-provided scenario range, **not** a computed confidence interval. If the low case is materially worse than the central estimate, mark the pick for manual review.
+4. **No automatic veto from normal uncertainty:** A plausible failure scenario does not alone force PASS; it informs the final judgment. Reserve hard blocks for genuinely unresolved critical risks.
+5. **Avoid hindsight:** Store assumptions and scenario estimates with their pre-match timestamps. Never backfill a pre-match risk using information first learned from the result.
+
+The Python prototype flags scenario gaps and sensitivity, but it does not invent estimates, verify market availability, or assign grades automatically. A candidate with incomplete scenario inputs remains reviewable and should not be presented as a confirmed final pick without analyst review.
