@@ -1,0 +1,45 @@
+name: Imported KHL results
+on:
+  schedule:
+    - cron: '45 8 * * *'
+  workflow_dispatch:
+    inputs:
+      write:
+        description: Save verified results
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: imported-results
+  cancel-in-progress: false
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Verify only
+        if: github.event_name == 'workflow_dispatch' && !inputs.write
+        run: python -m tracker.settle_imports
+      - name: Verify and save
+        if: github.event_name == 'schedule' || inputs.write
+        run: python -m tracker.settle_imports --write
+      - name: Commit separate result journal
+        if: github.event_name == 'schedule' || inputs.write
+        run: |
+          if [ ! -f data/imported_results.csv ]; then exit 0; fi
+          git add data/imported_results.csv
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Append verified imported KHL results'
+          git pull --rebase origin main
+          git push origin HEAD:main

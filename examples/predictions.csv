@@ -1,0 +1,2 @@
+forecast_date,event_date,sport,competition,event,market,line,odds,probability,category,role,arguments,risks
+2026-10-23,2026-10-23,football,Ligue 1,Брест — Ницца,Ницца ИТМ,1.5,1.53,69,B,final,Пример итогового прогноза,Коэффициент ниже 1.48

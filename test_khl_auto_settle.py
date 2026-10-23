@@ -34,7 +34,7 @@ class SettlementTests(unittest.TestCase):
         row=decision("SKA team total under 3.5 goals in regulation")
         self.assertIsNone(assess(row,[event(),event()]))
     def test_away_total(self):
-        row=decision("Sibir team total over 2.5 goals in regulation")
+        row=decision("Sibir team total over 2.5 goals in regulation", line="2.5")
         self.assertEqual(assess(row,[event()])["result_status"],"Win")
 
 if __name__=="__main__":

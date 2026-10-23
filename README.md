@@ -1,3 +1,11 @@
+# Веб-приложение учёта прогнозов
+
+**[Запуск на Windows и инструкция → APP_GUIDE_RU.md](APP_GUIDE_RU.md)**
+
+Python + Streamlit: импорт текста/CSV/JSON/публичной ссылки, ручная проверка, GitHub, общий журнал, CSV/Excel и статистика. Быстрый запуск: `start_windows.bat`.
+
+---
+
 # Sports Scheduled — portable project specification
 
 This repository preserves the decision rules and operating procedure for a daily sports-pick workflow, so another AI or future software implementation can continue the work if the original ChatGPT Scheduled task becomes unavailable.
