@@ -38,10 +38,39 @@ def validate_candidate(candidate):
             errors.append("estimated_probability_pct must be between 0 and 100")
     except (TypeError, ValueError):
         errors.append("estimated_probability_pct must be a number")
-    for field in ("critical_risks", "evidence_gaps"):
+    for field in ("critical_risks", "evidence_gaps", "failure_scenarios", "alternative_markets"):
         if not isinstance(candidate.get(field, []), list):
             errors.append(f"{field} must be a list")
+    bounds = candidate.get("scenario_probability_pct")
+    if bounds is not None:
+        if not isinstance(bounds, dict) or "low" not in bounds or "high" not in bounds:
+            errors.append("scenario_probability_pct must contain low and high")
+        else:
+            try:
+                low, high = float(bounds["low"]), float(bounds["high"])
+                center = float(candidate["estimated_probability_pct"])
+                if not (0 <= low <= center <= high <= 100):
+                    errors.append("scenario bounds must satisfy 0 <= low <= estimate <= high <= 100")
+            except (TypeError, ValueError):
+                errors.append("scenario bounds must be numeric")
     return errors
+
+
+def scenario_review(candidate, central_probability):
+    """Flags incomplete scenario work; does not calculate probabilities."""
+    failure = candidate.get("failure_scenarios", [])
+    alternatives = candidate.get("alternative_markets", [])
+    bounds = candidate.get("scenario_probability_pct")
+    flags = []
+    if not failure:
+        flags.append("failure scenario not documented")
+    if not alternatives:
+        flags.append("alternative market comparison not documented")
+    if bounds is None:
+        flags.append("sensitivity range not documented")
+    elif central_probability - float(bounds["low"]) >= 10:
+        flags.append("low-case estimate is at least 10 percentage points below central estimate")
+    return flags
 
 
 def evaluate_candidate(candidate, min_odds=DEFAULT_MIN_ODDS, max_odds=DEFAULT_MAX_ODDS):
@@ -59,6 +88,7 @@ def evaluate_candidate(candidate, min_odds=DEFAULT_MIN_ODDS, max_odds=DEFAULT_MA
         blockers.append(f"odds below guide minimum ({min_odds:.2f})")
     if critical_risks:
         blockers.append("unresolved critical risk(s) present")
+    review_flags = scenario_review(candidate, probability)
     return {
         "id": str(candidate["id"]),
         "valid": True,
@@ -74,6 +104,11 @@ def evaluate_candidate(candidate, min_odds=DEFAULT_MIN_ODDS, max_odds=DEFAULT_MA
         "evidence_gaps": evidence_gaps,
         "blockers": blockers,
         "eligible": not blockers,
+        "failure_scenarios": candidate.get("failure_scenarios", []),
+        "alternative_markets": candidate.get("alternative_markets", []),
+        "scenario_probability_pct": candidate.get("scenario_probability_pct"),
+        "scenario_review_flags": review_flags,
+        "requires_manual_review": bool(review_flags),
         "notes": candidate.get("notes", ""),
     }
 
@@ -87,6 +122,7 @@ def rank_candidates(candidates, min_odds=DEFAULT_MIN_ODDS, max_odds=DEFAULT_MAX_
     # fewer evidence gaps. This is decision support, not a probability model.
     eligible.sort(key=lambda item: (
         -item["estimated_probability_pct"],
+        len(item["scenario_review_flags"]),
         len(item["evidence_gaps"]),
         0 if item["in_preferred_odds_range"] else 1,
     ))
@@ -101,6 +137,7 @@ def rank_candidates(candidates, min_odds=DEFAULT_MIN_ODDS, max_odds=DEFAULT_MAX_
         "ineligible_candidates": [item for item in valid if not item["eligible"]],
         "invalid_candidates": invalid,
         "suggested_lead": eligible[0] if eligible else None,
+        "final_pick_approved": False,
         "decision": "REVIEW_CANDIDATES" if eligible else "PASS_OR_COLLECT_MORE_EVIDENCE",
     }
 
