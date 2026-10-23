@@ -6,13 +6,13 @@ date (Europe/Riga), stage, home/away and unique completed event.
 import csv
 import json
 import os
-import sys
+import re
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from daily_decisions import SETTLEMENT_FIELDS, _read, settle_decision
+from daily_decisions import FIELDS, SETTLEMENT_FIELDS, _read, settle_decision
 
 API = "https://khl.api.webcaster.pro/api/khl_mobile/events_v2.json"
 RIGA = ZoneInfo("Europe/Riga")
@@ -22,15 +22,31 @@ TEAM_ALIASES = {
     "ska saint petersburg": "SKA",
     "sibir novosibirsk": "Sibir",
 }
-SUPPORTED = {
-    "metallurg team total over 2.5 goals in regulation": ("home", "over", 2.5),
-    "ska team total under 3.5 goals in regulation": ("home", "under", 3.5),
-}
+MARKET_RE = re.compile(r"^(.+?) team total (over|under) ([0-9]+(?:[.][0-9]+)?) goals in regulation$", re.I)
+
+
+def parse_market(row):
+    match = MARKET_RE.fullmatch(row["market"].strip())
+    if not match:
+        return None
+    team, direction, threshold = match.groups()
+    names = row["event"].split(" - ")
+    if len(names) != 2:
+        return None
+    if team.lower() in (names[0].lower(), names[0].split()[0].lower()):
+        side = "home"
+    elif team.lower() in (names[1].lower(), names[1].split()[0].lower()):
+        side = "away"
+    else:
+        return None
+    if float(row["line"]) != float(threshold):
+        raise ValueError("Market threshold disagrees with stored line")
+    return side, direction.lower(), float(threshold)
 
 
 def events_for_day(date):
     start = datetime.fromisoformat(date).replace(tzinfo=RIGA).astimezone(timezone.utc)
-    end = start + timedelta(days=1)
+    end = (datetime.fromisoformat(date) + timedelta(days=1)).replace(tzinfo=RIGA).astimezone(timezone.utc)
     args = {"locale": "en",
             "q[start_at_gt_time_from_unixtime]": int(start.timestamp()),
             "q[start_at_lt_time_from_unixtime]": int(end.timestamp()),
@@ -68,10 +84,10 @@ def regulation_goals(event):
 
 
 def assess(decision, events):
-    market = decision["market"].strip().lower()
-    if market not in SUPPORTED:
+    parsed = parse_market(decision)
+    if parsed is None:
         return None
-    side, direction, total = SUPPORTED[market]
+    side, direction, total = parsed
     names = [TEAM_ALIASES.get(s.strip().lower(), s.strip()) for s in decision["event"].split(" - ")]
     if len(names) != 2:
         return None
@@ -91,21 +107,21 @@ def assess(decision, events):
         "result_status": "Win" if success else "Loss",
         "final_score": f"{regulation[0]}:{regulation[1]} regulation",
         "result_source_url": f"https://khl.api.webcaster.pro/api/khl_mobile/events_v2.json?locale=en",
-        "settlement_notes": f"KHL event {event.get('khl_id')}; three periods; {goals} home goals; original market {decision['market']}",
+        "settlement_notes": f"KHL event {event.get('khl_id')}; three periods; {goals} {side} goals; original market {decision['market']}",
     }
 
 
 def main():
     decisions_path = Path("daily_decisions.csv")
     settlements_path = Path("settlements.csv")
-    decisions = _read(decisions_path, __import__("daily_decisions").FIELDS)
+    decisions = _read(decisions_path, FIELDS)
     existing = {r["decision_id"] for r in _read(settlements_path, SETTLEMENT_FIELDS)}
     cache = {}
     count = 0
     for row in decisions:
         if row["decision"] != "PICK" or row["sport"] != "hockey" or row["decision_id"] in existing:
             continue
-        if row["market"].strip().lower() not in SUPPORTED:
+        if parse_market(row) is None:
             print("Unsupported market; manual review:", row["decision_id"])
             continue
         date = row["date_riga"]
