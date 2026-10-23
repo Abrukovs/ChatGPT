@@ -1,0 +1,52 @@
+name: KHL automatic results
+
+on:
+  push:
+    branches:
+      - feature/khl-auto-settlement-v1
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        required: true
+        default: true
+        description: "Preview verified settlements without writing"
+  schedule:
+    - cron: "15 8 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: khl-results-write
+  cancel-in-progress: false
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run unit tests
+        run: python -m unittest -v test_khl_auto_settle.py
+      - name: Verify recorded KHL games
+        env:
+          DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+        run: python khl_auto_settle.py
+      - name: Commit confirmed results
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+        run: |
+          if git diff --quiet -- settlements.csv; then
+            echo "No new confirmed results"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add settlements.csv
+          git commit -m "Settle verified KHL regulation totals"
+          git push origin HEAD:main
