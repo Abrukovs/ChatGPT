@@ -31,7 +31,7 @@ jobs:
           python-version: "3.12"
       - name: Verify recorded KHL games
         env:
-          DRY_RUN: ${{ github.event_name != 'schedule' && inputs.dry_run || 'false' }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
         run: python khl_auto_settle.py
       - name: Commit confirmed results
         if: github.event_name == 'schedule' || !inputs.dry_run
