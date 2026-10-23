@@ -1,6 +1,9 @@
 name: KHL automatic results
 
 on:
+  push:
+    branches:
+      - feature/khl-auto-settlement-v1
   workflow_dispatch:
     inputs:
       dry_run:
@@ -29,12 +32,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Run unit tests
+        run: python -m unittest -v test_khl_auto_settle.py
       - name: Verify recorded KHL games
         env:
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+          DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
         run: python khl_auto_settle.py
       - name: Commit confirmed results
-        if: github.event_name == 'schedule' || !inputs.dry_run
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
         run: |
           if git diff --quiet -- settlements.csv; then
             echo "No new confirmed results"
