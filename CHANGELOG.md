@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-28 — Candidate fallback and half-unit tracking
+- Added a distinct CANDIDATE decision type for days without a qualifying main PICK, without changing the main-pick criteria.
+- CANDIDATE records require explicit 0.5 virtual-flat labeling; they can be settled in `settlements.csv` without changing the original decision.
+- Updated the daily workflow and strategy documentation; added tests for candidate validation and settlement.
+- Virtual units are tracking only, not real-money stake advice.
+
 ## 2026-10-23 — Prospective scenario review
 - Added a required pre-match failure-scenario analysis, alternative-market comparison, and sensitivity-range check to STRATEGY.md.
 - Extended the Python prototype to flag missing scenario evidence and fragile low-case estimates (10 percentage-point review threshold).
