@@ -40,6 +40,25 @@ class DailyDecisionsTests(unittest.TestCase):
         with self.decisions.open(newline='',encoding='utf-8') as f:
             self.assertEqual(next(csv.DictReader(f))['line'],'21.5')
 
+    def test_candidate_can_be_settled_as_half_unit(self):
+        original = {**pick(), 'decision':'CANDIDATE', 'grade':'B',
+                    'rationale':'CANDIDATE — 0.5 virtual flat; no primary pick.'}
+        self.assertEqual(add_decision(self.decisions, original), 'added')
+        settlement = dict(
+            decision_id=original['decision_id'],
+            result_status='Win',
+            final_score='2-1',
+            settled_at_riga='2026-10-21T10:00:00+03:00',
+            result_source_url='https://example.org/result',
+            settlement_notes='CANDIDATE; settled separately as 0.5 virtual flat.',
+        )
+        self.assertEqual(settle_decision(self.decisions, self.settlements, settlement), 'added')
+
+    def test_candidate_requires_explicit_half_unit_label(self):
+        original = {**pick(), 'decision':'CANDIDATE', 'grade':'B', 'rationale':'Test only'}
+        with self.assertRaises(ValueError):
+            add_decision(self.decisions, original)
+
     def test_no_settlement_of_pass(self):
         record = {k:v for k,v in pick().items() if k not in ('sport','competition','event','market','line','reference_odds','estimated_probability_pct','grade')}
         record['decision']='PASS'
