@@ -39,9 +39,9 @@ def add_decision(path, record):
     selected = datetime.fromisoformat(record['selected_at_riga'])
     if selected.tzinfo is None or selected.astimezone(ZoneInfo('Europe/Riga')).date().isoformat() != record['date_riga']:
         raise ValueError('Decision date must match Riga local time')
-    if record['decision'] not in {'PICK','PASS'}:
+    if record['decision'] not in {'PICK','CANDIDATE','PASS'}:
         raise ValueError('Decision must be PICK or PASS')
-    if record['decision'] == 'PICK':
+    if record['decision'] in {'PICK','CANDIDATE'}:
         if record.get('sport') not in SPORTS or record.get('grade') not in GRADES:
             raise ValueError('Invalid sport or grade')
         if not all(str(record.get(k, '')).strip() for k in ('competition','event','market','estimated_probability_pct')):
@@ -52,6 +52,10 @@ def add_decision(path, record):
             raise ValueError('Invalid probability') from exc
         if not 0 < probability < 100:
             raise ValueError('Invalid probability')
+        if record['decision'] == 'CANDIDATE':
+            rationale = str(record.get('rationale', '')).lower()
+            if 'candidate' not in rationale or '0.5' not in rationale:
+                raise ValueError('CANDIDATE must be labelled and include 0.5 virtual flat in rationale')
     else:
         if any(str(record.get(k, '')).strip() for k in ('sport','competition','event','market','line','reference_odds','estimated_probability_pct','grade')):
             raise ValueError('PASS cannot include a selected market')
@@ -77,8 +81,8 @@ def settle_decision(decisions_path, settlements_path, record):
     if not record.get('result_source_url') or not record.get('settled_at_riga'):
         raise ValueError('Settlement requires source and timestamp')
     decisions = _read(Path(decisions_path), FIELDS)
-    if not any(r['decision_id'] == record.get('decision_id') and r['decision'] == 'PICK' for r in decisions):
-        raise ValueError('Unknown PICK decision')
+    if not any(r['decision_id'] == record.get('decision_id') and r['decision'] in {'PICK', 'CANDIDATE'} for r in decisions):
+        raise ValueError('Unknown PICK/CANDIDATE decision')
     settlements_path = Path(settlements_path)
     rows = _read(settlements_path, SETTLEMENT_FIELDS)
     new_row = {k: str(record.get(k, '')) for k in SETTLEMENT_FIELDS}
