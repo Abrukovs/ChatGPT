@@ -12,8 +12,8 @@ This repository preserves the decision rules and operating procedure for a daily
 
 ## Scope
 - Sports: hockey, basketball, tennis only. Football is excluded.
-- Daily goal: select at most one strongest candidate, usually at an approximate decimal price of 1.50–2.00.
-- No forced picks. PASS is allowed when evidence does not support a sufficiently reliable selection.
+- Daily record: exactly one decision per Riga date. Use PICK if the unchanged main criteria are met; otherwise use one defensible CANDIDATE tracked as 0.5 virtual flat; otherwise PASS.
+- CANDIDATE is not a main pick and does not change the main selection criteria. Virtual units are tracking only, not real-money stake advice.
 - Compare markets, not just teams: match winner, handicaps/spreads, match/team totals, tennis games/sets and other relevant markets.
 - Preserve the original pick and price/probability estimates; record later user-observed prices separately.
 - Check unsettled previous picks before creating a new one.
