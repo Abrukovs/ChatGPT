@@ -4,11 +4,11 @@ The workflow `.github/workflows/record-daily-decision.yml` provides a manual, au
 
 ## Workflow
 
-1. Complete the sports analysis outside GitHub. Choose **one** PICK or PASS for each Riga date. The probability estimate must be independent of the odds.
-2. Prepare a JSON object using the field names in `daily_decisions.csv`. For PICK provide the sport, competition, event, market, independent probability, grade and initial line/odds when available. For PASS provide only date, decision ID, decision type, selection time and optionally rationale/risks.
+1. Complete the sports analysis outside GitHub. Save exactly one decision per Riga date: **PICK** when the main standard is met; otherwise **CANDIDATE** when a defensible fallback remains; otherwise **PASS**. A CANDIDATE is not a main pick and is tracked as **0.5 virtual flat** only.
+2. Prepare a JSON object using the field names in `daily_decisions.csv`. For PICK or CANDIDATE provide sport, competition, event, market, independent probability, grade and initial line/odds when available. For CANDIDATE, `decision` must be `CANDIDATE` and `rationale` must explicitly include `CANDIDATE` and `0.5 virtual flat`, plus state that no primary pick was found. For PASS, leave all selection fields empty and provide date, decision ID, selection time and optionally rationale/risks.
 3. In GitHub Actions select **Record daily decision**, **Run workflow**, choose `decision`, paste the JSON into `record_json`, and start it.
 4. The workflow validates and saves the record to `daily_decisions.csv` in `main`. Exact duplicates are no-ops; a different decision for the same Riga date is rejected.
-5. For a verified match result use `settlement` and a JSON object with decision_id, result_status, settled_at_riga, result_source_url, final_score and settlement_notes. The original decision is never modified.
+5. On the following day, verify any completed PICK or CANDIDATE using an official/reliable score source. For the result use `settlement` and a JSON object with decision_id, result_status, settled_at_riga, result_source_url, final_score and settlement_notes. Mark candidate settlements as CANDIDATE / 0.5 virtual flat in `settlement_notes`. The original decision is never modified.
 
 Example PASS (illustrative only; do not submit it as a real decision):
 
