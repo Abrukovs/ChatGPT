@@ -1,16 +1,14 @@
 # Strategy: daily sports selection
 
 ## 1. Objective and scope
-Select at most one strongest candidate per daily run from hockey, basketball and tennis. Exclude football. Target an approximate decimal odds range of 1.50–2.00, with 1.50 as a guide rather than a guarantee or hard rule. Prioritize a credible chance of success; do not choose a high price merely because it is high.
-
-The task is not to force a bet every day. PASS is valid when no candidate clears the standard. Equally, do not use PASS solely because of minor uncertainty when the available evidence still supports a well-reasoned candidate.
+Analyze hockey, basketball and tennis only; exclude football. Record exactly one decision per Riga calendar date. First apply the unchanged main-pick standard (PICK, grades A/B+/B). If no main pick qualifies, select one **CANDIDATE** only when a defensible evidence-backed fallback remains; track it as **0.5 virtual flat**, not as a real-money recommendation. If even that standard is not met, record PASS. The target price is approximately 1.50–2.00, with 1.50 as a guide rather than a hard rule. Do not select a high price merely because it is high.
 
 ## 2. Workflow: scan, shortlist, compare
 1. Scan the relevant day's fixtures and available markets in the three allowed sports.
 2. Quickly eliminate candidates with major unresolved risks, unreliable data, poor market fit, or prices outside the intended range without a compensating reason.
 3. Compare the best 3–5 remaining candidates in more depth, where the slate permits. If fewer than three credible candidates exist, do not pad the shortlist with weak events.
 4. Compare multiple market types for each serious candidate; do not assume the match-winner market is automatically best.
-5. Select one candidate only if it stands out after comparing both its probability and risks. Otherwise report PASS and explain why.
+5. If a market clears the main standard, select one PICK. If none does, choose one CANDIDATE only if the strongest fallback is still evidence-backed and its key risks are explicit; mark it `CANDIDATE — 0.5 virtual flat; no primary pick`. If no defensible fallback remains, select PASS. Never upgrade a candidate into a main pick just to avoid PASS.
 
 ## 3. Evidence to evaluate
 Use the most relevant available information, normally including:
@@ -58,7 +56,9 @@ Use the following labels consistently:
 - **A** — rare, exceptionally strong candidate after comparing the slate.
 - **B+** — high-grade candidate with a strong evidence base and manageable risks.
 - **B** — reasonable candidate, but with meaningful limitations or uncertainty.
-- **PASS** — no candidate meets the standard, or a key fact/price makes the selection unsuitable.
+- **PASS** — neither a main pick nor a defensible fallback candidate meets the minimum standard.
+
+`CANDIDATE` is a decision type, not a grade. Keep its underlying grade at A/B+/B as justified by the evidence, but clearly distinguish it from a main PICK. The 0.5 virtual flat is a tracking convention, not a real stake or instruction to wager.
 
 Do not inflate a grade because a pick won, downgrade it solely because it lost, or force a B+ or A to appear every day. Explain the grade in terms of evidence and risks. These are qualitative internal grades, not calibrated probability bands.
 
@@ -74,7 +74,7 @@ Record and report:
 - Main supporting reasons, main failure scenarios and unresolved uncertainties.
 - A note that the user should verify their actual price.
 
-If no selection qualifies, report PASS and briefly explain the strongest candidate's key weakness or why the slate is unsuitable. Do not manufacture a pick simply to satisfy the daily target.
+If no main selection qualifies, report the best CANDIDATE if one is defensible, explicitly stating that no primary pick exists and that it is tracked at 0.5 virtual flat. If no defensible candidate exists, report PASS. Do not manufacture a candidate simply to satisfy the daily target.
 
 ## 8. Integrity
 No fabricated statistics, prices, injuries, lineups, sources or results. Distinguish confirmed facts from estimates. Never promise a result or describe a pick as guaranteed. Do not provide stake amounts.
